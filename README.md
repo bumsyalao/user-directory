@@ -1,40 +1,119 @@
 # Presight Frontend Exercise
 
-#### Create a react application and nodes web server for the following use cases
+Build a small full-stack user directory application. The goal is to evaluate how you design a searchable, filterable, paginated UI backed by persisted data and clear API boundaries.
 
-1. Create a mock api to serve paginated list of information with filtering and search capabilities
+The application should include:
 
-   - Define a data object having the following
-     - avatar
-     - first_name
-     - last_name
-     - age
-     - nationality
-     - hobbies (list of 0 to 10 items)
-   - Display the list as individual cards using virtual scroll component, subsequent pages must be loaded using infinite scroll technique (preferably using `@tanstack/react-virtual`)
-   - Design the card as
-     ```
-     |----------------------------------|
-     | avatar      first_name+last_name |
-     |             nationality      age |
-     |                                  |
-     |             (2 hobbies) (+n)     |
-     |----------------------------------|
-     ```
-     > display top 2 hobbies and show remaining count if applicable as _`+n`_
-   - Provide a side list in page to show top 20 hobbies and nationality that can be applied as filters
-   - Provide a searchbox to find and filter the data by first_name, last_name
+- A React client.
+- A Node.js API server.
+- A SQLite database used as the source of truth for user data.
+- Docker configuration for running the application locally.
 
-2. Read http response as stream and create a display that will print the response one character at a time
+## Scenario
 
-   - Create an api that responds with long text (`faker.lorem.paragraphs(32)`)
-   - Read the response as a stream, while the stream is open display the available response one character at a time
-   - Once the stream is closed print entire response
+Users need to browse a large directory of people, search by name, and narrow results by nationality and hobbies. The filter sidebar should help users discover useful filters based on the result set they are currently viewing.
 
-3. Create an api that will process each request in webworker and respond with the result over websocket
+## Requirements
 
-   - The api endpoint must cache each request into an in-memory queue and respond with `pending`
-   - The queued requests must be processed in a webworker, the worker should send a result over websockets (for the exercise a text result can be sent after a timeout of 2seconds)
-   - In react show 20 items that correspond to 20 requests, display `pending` for each of the requests and display corresponding result on receiving the websocket result
+### Data Model
 
-   > request --> `pending` --> socket message --> `result`
+Seed a SQLite database with enough records to make pagination, infinite scroll, search, and filter counts meaningful.
+
+Each user should have:
+
+- `avatar`
+- `first_name`
+- `last_name`
+- `age`
+- `nationality`
+- `hobbies`, from 0 to 10 hobbies per user
+
+Choose a data model that supports the required behavior.
+
+SQLite must be the persisted source of user data.
+
+### API
+
+Expose an API that supports:
+
+- Paginated user results.
+- Text filtering from user input across `first_name` and `last_name`.
+- Filtering by one or more nationalities.
+- Filtering by one or more hobbies.
+- Sorting by `first_name`, `last_name`, `age`, and `nationality`.
+- Pagination metadata so the client can determine whether more results are available.
+- Top 20 hobbies for the active text filter and filter state, including `{ value, count }`.
+- Top 20 nationalities for the active text filter and filter state, including `{ value, count }`.
+
+The top 20 values and counts must reflect the currently applied text filter and selected filters, not the global dataset.
+
+Filter semantics:
+
+- Multiple selected hobbies should match users who have all selected hobbies.
+- Multiple selected nationalities should match users from any selected nationality.
+- Text, hobby, and nationality filters should apply together.
+
+Sorting semantics:
+
+- Sorted results must be deterministic. Use `id` as a final tie-breaker when values are equal.
+- Pagination must respect the active sort without duplicate or missing users.
+
+### Client
+
+Build a React interface that includes:
+
+- A text filter input for `first_name` and `last_name`.
+- A virtualized, infinitely scrolling list of user cards.
+- A sidebar containing the top 20 hobbies and top 20 nationalities for the current result set, including counts.
+- Controls for applying and removing hobby and nationality filters.
+- Controls for choosing sort field and sort direction.
+- Loading, empty, and error states.
+- A responsive layout that remains usable on desktop and mobile.
+
+User cards should follow this structure:
+
+```text
+|----------------------------------|
+| avatar      first_name+last_name |
+|             nationality      age |
+|                                  |
+|             (2 hobbies) (+n)     |
+|----------------------------------|
+```
+
+Show up to 2 hobbies on the card. If the user has more hobbies, display the remaining count as `+n`.
+
+Use a virtual scroll implementation for the list.
+
+When the text filter or selected filters change, the client must refresh both:
+
+- The paginated user list.
+- The top 20 hobbies and nationalities in the sidebar.
+
+The text filter value, selected hobbies, selected nationalities, sort field, and sort direction must be reflected in the URL query string. Reloading or sharing the URL should restore the same view state.
+
+## Implementation Notes
+
+- Keep the database setup easy to run locally.
+- Include seed logic or a documented command that creates the SQLite database.
+- Include a `Dockerfile` and `docker-compose.yml` that can run the application locally.
+
+## Evaluation Focus
+
+We will pay particular attention to:
+
+- Correct data persistence and API behavior.
+- Correct filtering, sorting, pagination, and top 20 counts.
+- Smooth infinite scrolling with virtualization.
+- URL-synced state.
+- Clear loading, empty, and error states.
+- Easy local and Docker-based setup.
+
+## Deliverables
+
+Please provide:
+
+- Source code for the React client and Node.js server.
+- A `Dockerfile` and `docker-compose.yml`.
+- Instructions for setup, database seeding, and running locally.
+- Instructions for running with Docker Compose.
