@@ -2,14 +2,84 @@
 
 ## Project Description
 
-This is a full-stack user directory application built for the frontend technical assessment. It lets users browse a large dataset of people, search by name, filter by nationality and hobbies, sort results, and scroll through matches efficiently.
-
-The app demonstrates:
+This is a full-stack user directory application. It lets users browse a large dataset of people, search by name, filter by nationality and hobbies, sort results, and scroll through matches efficiently.
 
 - A React client with virtualized infinite scrolling and URL-synced filter state
 - A Node.js/Express API with clear boundaries and predictable query semantics
 - SQLite as the persisted source of truth for user data
 - Docker-based local deployment
+
+## Prerequisites
+
+- Node.js 20+ (recommended; Node 18 may work with `--ignore-engines`)
+- Yarn 1.x
+- Docker & Docker Compose (optional, for containerized run)
+
+## Local Setup
+
+  ### 1. Install dependencies
+
+  ```bash
+  yarn install --ignore-engines
+  ```
+
+  If `better-sqlite3` fails to load, rebuild the native module:
+
+  ```bash
+  cd server && npm rebuild better-sqlite3
+  ```
+
+  ### 2. Seed the database
+
+  Creates `./data/directory.db` with ~3,000 synthetic users:
+
+  ```bash
+  yarn seed
+  ```
+
+  Re-seed from scratch:
+
+  ```bash
+  yarn workspace directory-server seed --force
+  ```
+
+  ### 3. Start development servers
+
+  ```bash
+  yarn dev
+  ```
+
+  | Service | URL |
+  |---------|-----|
+  | React client (Vite) | http://localhost:5173 |
+  | Express API | http://localhost:3001 |
+
+  Vite proxies `/api` requests to the server during development.
+
+  ### 4. Production build
+
+  ```bash
+  yarn build
+  yarn start
+  ```
+
+  The server serves the built client from `client/dist` when available.
+
+## Docker Setup
+
+Build and run with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+Open http://localhost:3001
+
+- SQLite data is stored in a named Docker volume (`directory-data`)
+- The database is auto-seeded on first startup when empty
+- API and static client are served from a single container
+
+
 
 ## Architecture Overview
 
@@ -45,11 +115,6 @@ flowchart LR
 | Database | SQLite via better-sqlite3 |
 | Monorepo | Yarn workspaces |
 
-## Prerequisites
-
-- Node.js 20+ (recommended; Node 18 may work with `--ignore-engines`)
-- Yarn 1.x
-- Docker & Docker Compose (optional, for containerized run)
 
 ## Project Structure
 
@@ -74,70 +139,6 @@ user-directory/
 ├── docker-compose.yml
 └── instructions.md
 ```
-
-## Local Setup
-
-### 1. Install dependencies
-
-```bash
-yarn install --ignore-engines
-```
-
-If `better-sqlite3` fails to load, rebuild the native module:
-
-```bash
-cd server && npm rebuild better-sqlite3
-```
-
-### 2. Seed the database
-
-Creates `./data/directory.db` with ~3,000 synthetic users:
-
-```bash
-yarn seed
-```
-
-Re-seed from scratch:
-
-```bash
-yarn workspace directory-server seed --force
-```
-
-### 3. Start development servers
-
-```bash
-yarn dev
-```
-
-| Service | URL |
-|---------|-----|
-| React client (Vite) | http://localhost:5173 |
-| Express API | http://localhost:3001 |
-
-Vite proxies `/api` requests to the server during development.
-
-### 4. Production build
-
-```bash
-yarn build
-yarn start
-```
-
-The server serves the built client from `client/dist` when available.
-
-## Docker Setup
-
-Build and run with Docker Compose:
-
-```bash
-docker compose up --build
-```
-
-Open http://localhost:3001
-
-- SQLite data is stored in a named Docker volume (`directory-data`)
-- The database is auto-seeded on first startup when empty
-- API and static client are served from a single container
 
 ## API Reference
 
@@ -234,14 +235,3 @@ Facet counts (top 20 hobbies and nationalities) always reflect the currently app
 | `DB_PATH` | `./data/directory.db` | SQLite file path |
 | `CLIENT_DIST_PATH` | `../client/dist` | Built client assets |
 | `AUTO_SEED` | `true` | Seed DB on startup when empty |
-
-## Verification Checklist
-
-- [ ] `yarn seed` creates ~3,000 users
-- [ ] Text search filters by first/last name
-- [ ] Multiple hobbies use AND; multiple nationalities use OR
-- [ ] Sidebar counts update with active filters
-- [ ] Infinite scroll loads more pages without duplicates
-- [ ] URL reload restores the same view
-- [ ] Layout works on mobile and desktop
-- [ ] `docker compose up --build` serves the app at port 3001

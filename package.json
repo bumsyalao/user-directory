@@ -12,7 +12,7 @@
   "scripts": {
     "postinstall": "npm rebuild better-sqlite3 || true",
     "start": "yarn workspace directory-server start",
-    "dev": "concurrently \"yarn workspace directory-server dev\" \"yarn workspace directory-client dev\"",
+    "dev": "concurrently -k -n server,client -c cyan,magenta \"yarn workspace directory-server dev\" \"yarn workspace directory-client dev\"",
     "build": "yarn workspace directory-server build && yarn workspace directory-client build",
     "seed": "yarn workspace directory-server seed",
     "docker:up": "docker compose up --build"
