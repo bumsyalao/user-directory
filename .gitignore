@@ -21,7 +21,8 @@ scripts/
 .env.test.local
 .env.production.local
 
-link.sh
+/data/
+server/data/
 start.sh
 npm-debug.log*
 yarn-debug.log*

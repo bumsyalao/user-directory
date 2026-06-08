@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DB_PATH: /app/data/directory.db
+      CLIENT_DIST_PATH: /app/client/dist
+      AUTO_SEED: "true"
+    volumes:
+      - directory-data:/app/data
+
+volumes:
+  directory-data:

@@ -1,6 +1,7 @@
 {
-  "name": "presight-execise",
+  "name": "user-directory",
   "version": "1.0.0",
+  "private": true,
   "repository": "",
   "author": "",
   "license": "MIT",
@@ -9,9 +10,14 @@
     "server"
   ],
   "scripts": {
-    "start": "lerna run start"
+    "postinstall": "npm rebuild better-sqlite3 || true",
+    "start": "yarn workspace directory-server start",
+    "dev": "concurrently \"yarn workspace directory-server dev\" \"yarn workspace directory-client dev\"",
+    "build": "yarn workspace directory-server build && yarn workspace directory-client build",
+    "seed": "yarn workspace directory-server seed",
+    "docker:up": "docker compose up --build"
   },
   "devDependencies": {
-    "lerna": "~8.2.1"
+    "concurrently": "~9.1.2"
   }
 }

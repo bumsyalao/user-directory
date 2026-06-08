@@ -1,13 +1,25 @@
 {
-  "name": "presight-server",
+  "name": "directory-server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "license": "MIT",
+  "scripts": {
+    "build": "tsc && cp src/db/schema.sql dist/db/schema.sql",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "seed": "tsx src/db/seed.ts"
+  },
   "dependencies": {
+    "better-sqlite3": "~11.9.0",
+    "cors": "~2.8.5",
     "express": "~5.1.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "~7.6.12",
+    "@types/cors": "~2.8.17",
     "@types/express": "~5.0.1",
-    "@types/node-fetch": "~2.6.12"
+    "@types/node": "~22.14.0",
+    "tsx": "~4.19.3",
+    "typescript": "~5.8.3"
   }
 }

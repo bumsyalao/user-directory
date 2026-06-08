@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+yarn-error.log
+.git
+client/node_modules
+server/node_modules
+server/data
+data
+client/dist
+server/dist

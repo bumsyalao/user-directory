@@ -100,7 +100,7 @@ The text filter value, selected hobbies, selected nationalities, sort field, and
 
 ## Evaluation Focus
 
-We will pay particular attention to:
+Pay particular attention to:
 
 - Correct data persistence and API behavior.
 - Correct filtering, sorting, pagination, and top 20 counts.
