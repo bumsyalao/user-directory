@@ -2,11 +2,29 @@ import { User } from "../../types/user.types";
 
 interface UserCardProps {
   user: User;
+  selectedHobbies?: string[];
+}
+
+function sortHobbiesBySelection(hobbies: string[], selectedHobbies: string[]) {
+  if (selectedHobbies.length === 0) {
+    return hobbies;
+  }
+
+  const selectedSet = new Set(selectedHobbies);
+  return [...hobbies].sort((a, b) => {
+    const aSelected = selectedSet.has(a);
+    const bSelected = selectedSet.has(b);
+    if (aSelected === bSelected) {
+      return 0;
+    }
+    return aSelected ? -1 : 1;
+  });
 }
 
 /** Displays a single user in the directory list layout. */
-export function UserCard({ user }: UserCardProps) {
-  const visibleHobbies = user.hobbies.slice(0, 2);
+export function UserCard({ user, selectedHobbies = [] }: UserCardProps) {
+  const sortedHobbies = sortHobbiesBySelection(user.hobbies, selectedHobbies);
+  const visibleHobbies = sortedHobbies.slice(0, 2);
   const remainingCount = Math.max(0, user.hobbies.length - visibleHobbies.length);
 
   return (

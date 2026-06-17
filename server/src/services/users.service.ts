@@ -11,6 +11,10 @@ import {
   buildWhereClause,
   normalizePagination,
 } from "../utils/sql";
+import {
+  formatNationalities,
+  parseNationalities,
+} from "../utils/nationality";
 
 const HOBBIES_BY_USER = `
   SELECT user_id, hobby
@@ -44,15 +48,18 @@ export function getUsers(query: UserQueryParams): UsersResponse {
     )
     .all(...params, limit, offset) as Omit<User, "hobbies">[];
 
-  const users = attachHobbies(userRows);
+  const users = attachHobbies(userRows).map((user) => ({
+    ...user,
+    nationality: formatNationalities(parseNationalities(user.nationality)),
+  }));
 
   const nationalityFacets = db
     .prepare(
-      `SELECT u.nationality AS value, COUNT(*) AS count
-       FROM users u
+      `SELECT je.value AS value, COUNT(DISTINCT u.id) AS count
+       FROM users u, json_each(u.nationality) AS je
        ${whereSql}
-       GROUP BY u.nationality
-       ORDER BY count DESC, u.nationality ASC
+       GROUP BY je.value
+       ORDER BY count DESC, je.value ASC
        LIMIT 20`,
     )
     .all(...params) as { value: string; count: number }[];

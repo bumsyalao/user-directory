@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchUsers } from "../api/users";
+import { useCallback, useMemo, useState } from "react";
+import { useGetUsersQuery } from "../api/usersApi";
 import {
   DirectoryState,
   FacetValue,
   User,
-  UserQueryParams,
 } from "../types/user.types";
+import { getQueryErrorMessage } from "../utils/queryError";
 
 const PAGE_SIZE = 20;
 
@@ -24,111 +24,50 @@ interface UseUserDirectoryResult {
   retry: () => void;
 }
 
-/** Fetches paginated users and facets, appending pages for infinite scroll. */
+/** Fetches paginated users and facets via RTK Query with cached infinite scroll. */
 export function useUserDirectory(state: DirectoryState): UseUserDirectoryResult {
-  const [users, setUsers] = useState<User[]>([]);
-  const [facets, setFacets] = useState<{
-    hobbies: FacetValue[];
-    nationalities: FacetValue[];
-  }>({ hobbies: [], nationalities: [] });
-  const [total, setTotal] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [page, setPage] = useState(1);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const requestIdRef = useRef(0);
   const stateKey = JSON.stringify(state);
+  const [pagination, setPagination] = useState({ stateKey, page: 1 });
 
-  const buildParams = useCallback(
-    (pageNumber: number): UserQueryParams => ({
+  const page =
+    pagination.stateKey === stateKey ? pagination.page : 1;
+
+  const queryArgs = useMemo(
+    () => ({
       search: state.search,
       hobbies: state.hobbies,
       nationalities: state.nationalities,
       sortBy: state.sortBy,
       sortOrder: state.sortOrder,
-      page: pageNumber,
+      page,
       limit: PAGE_SIZE,
     }),
-    [state],
+    [state, page],
   );
 
-  const fetchPage = useCallback(
-    async (pageNumber: number, append: boolean) => {
-      const requestId = ++requestIdRef.current;
-
-      if (append) {
-        setIsLoadingMore(true);
-      } else {
-        setIsInitialLoading(true);
-        setError(null);
-      }
-
-      try {
-        const response = await fetchUsers(buildParams(pageNumber));
-
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
-
-        setUsers((current) =>
-          append ? [...current, ...response.users] : response.users,
-        );
-        setFacets(response.facets);
-        setTotal(response.pagination.total);
-        setHasMore(response.pagination.hasMore);
-        setPage(pageNumber);
-        setError(null);
-      } catch (err) {
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
-
-        const message =
-          err instanceof Error ? err.message : "Failed to load users";
-        setError(message);
-
-        if (!append) {
-          setUsers([]);
-          setFacets({ hobbies: [], nationalities: [] });
-          setTotal(0);
-          setHasMore(false);
-        }
-      } finally {
-        if (requestId === requestIdRef.current) {
-          setIsInitialLoading(false);
-          setIsLoadingMore(false);
-        }
-      }
-    },
-    [buildParams],
-  );
-
-  useEffect(() => {
-    setPage(1);
-    void fetchPage(1, false);
-  }, [stateKey, fetchPage]);
+  const { data, error, isError, isFetching, isLoading, refetch } =
+    useGetUsersQuery(queryArgs);
 
   const loadMore = useCallback(() => {
-    if (isInitialLoading || isLoadingMore || !hasMore) {
+    if (!data?.pagination.hasMore || isFetching) {
       return;
     }
-    void fetchPage(page + 1, true);
-  }, [fetchPage, hasMore, isInitialLoading, isLoadingMore, page]);
+
+    setPagination({ stateKey, page: page + 1 });
+  }, [data?.pagination.hasMore, isFetching, page, stateKey]);
 
   const retry = useCallback(() => {
-    void fetchPage(1, false);
-  }, [fetchPage]);
+    void refetch();
+  }, [refetch]);
 
   return {
-    users,
-    facets,
-    total,
-    hasMore,
-    isInitialLoading,
-    isLoadingMore,
-    error,
+    users: data?.users ?? [],
+    facets: data?.facets ?? { hobbies: [], nationalities: [] },
+    total: data?.pagination.total ?? 0,
+    hasMore: data?.pagination.hasMore ?? false,
+    isInitialLoading: isLoading,
+    isLoadingMore: isFetching && page > 1 && !isLoading,
+    error: isError && error ? getQueryErrorMessage(error) : null,
     loadMore,
     retry,
   };

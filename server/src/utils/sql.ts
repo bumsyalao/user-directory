@@ -30,7 +30,11 @@ export function buildWhereClause(query: UserQueryParams): WhereClauseResult {
 
   if (query.nationalities?.length) {
     const placeholders = query.nationalities.map(() => "?").join(", ");
-    conditions.push(`u.nationality IN (${placeholders})`);
+    conditions.push(`EXISTS (
+      SELECT 1
+      FROM u.nationality AS je
+      WHERE je.value IN (${placeholders})
+    )`);
     params.push(...query.nationalities);
   }
 
@@ -59,6 +63,9 @@ export function buildOrderClause(
 ): string {
   const field = SORT_FIELDS.has(sortBy ?? "") ? sortBy! : "first_name";
   const direction = sortOrder === "desc" ? "DESC" : "ASC";
+  if (field === "nationality") {
+    return `ORDER BY json_extract(u.nationality, '$[0]') ${direction}, u.id ASC`;
+  }
   return `ORDER BY u.${field} ${direction}, u.id ASC`;
 }
 

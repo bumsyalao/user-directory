@@ -64,6 +64,7 @@ export function UserDirectoryPage() {
           <UserList
             users={users}
             isInitialLoading={isInitialLoading}
+            selectedHobbies={state.hobbies}
             isLoadingMore={isLoadingMore}
             error={error}
             hasMore={hasMore}

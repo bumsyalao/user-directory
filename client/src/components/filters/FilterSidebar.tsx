@@ -45,7 +45,7 @@ export function FilterSidebar({
 
       <section>
         <h3 className="mb-2 text-sm font-medium text-slate-800">
-          Top nationalities
+          Top 20 nationalities
         </h3>
         {nationalities.length === 0 ? (
           <p className="text-sm text-slate-500">No nationalities available.</p>
@@ -65,7 +65,7 @@ export function FilterSidebar({
       </section>
 
       <section>
-        <h3 className="mb-2 text-sm font-medium text-slate-800">Top hobbies</h3>
+        <h3 className="mb-2 text-sm font-medium text-slate-800">Top 20 hobbies</h3>
         {hobbies.length === 0 ? (
           <p className="text-sm text-slate-500">No hobbies available.</p>
         ) : (

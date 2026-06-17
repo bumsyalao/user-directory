@@ -60,6 +60,7 @@ function avatarUrl(id: number, firstName: string, lastName: string): string {
  * Skips seeding when users already exist unless force=true.
  */
 import { getDb, isDatabaseSeeded } from "./connection";
+import { serializeNationalities } from "../utils/nationality";
 
 export function seedDatabase(force = false): { inserted: number; skipped: boolean } {
   if (!force && isDatabaseSeeded()) {
@@ -87,10 +88,18 @@ export function seedDatabase(force = false): { inserted: number; skipped: boolea
       const firstName = pick(FIRST_NAMES);
       const lastName = pick(LAST_NAMES);
       const age = 18 + Math.floor(Math.random() * 63);
-      const nationality = pick(NATIONALITIES);
+      const nationalityCount = 1 + Math.floor(Math.random() * 2);
+      const nationalities = pickMany(NATIONALITIES, nationalityCount);
+      const nationality = serializeNationalities(nationalities);
       const avatar = avatarUrl(i + 1, firstName, lastName);
 
-      const result = insertUser.run(avatar, firstName, lastName, age, nationality);
+      const result = insertUser.run(
+        avatar,
+        firstName,
+        lastName,
+        age,
+        nationality,
+      );
       const userId = Number(result.lastInsertRowid);
 
       const hobbyCount = Math.floor(Math.random() * 11);

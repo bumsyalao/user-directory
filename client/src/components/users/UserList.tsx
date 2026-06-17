@@ -16,6 +16,7 @@ interface UserListProps {
   error: string | null;
   hasMore: boolean;
   total: number;
+  selectedHobbies: string[];
   onLoadMore: () => void;
   onRetry: () => void;
 }
@@ -28,6 +29,7 @@ export function UserList({
   error,
   hasMore,
   total,
+  selectedHobbies,
   onLoadMore,
   onRetry,
 }: UserListProps) {
@@ -76,6 +78,8 @@ export function UserList({
     return <ErrorState message={error} onRetry={onRetry} />;
   }
 
+
+
   if (users.length === 0) {
     return <EmptyState />;
   }
@@ -113,7 +117,7 @@ export function UserList({
                   paddingBottom: `${ROW_GAP}px`,
                 }}
               >
-                <UserCard user={user} />
+                <UserCard user={user} selectedHobbies={selectedHobbies} />
               </div>
             );
           })}
